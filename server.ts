@@ -12,7 +12,16 @@ async function handler(req: Request) {
 
   // GET Requests
 
-  // 1- Get the record with the id given
+  // 1- Get all the records
+  const getRecordsPattern = new URLPattern({
+    pathname: "/records",
+  });
+
+  if (getRecordsPattern.test(url) && req.method == "GET") {
+    return new Response(JSON.stringify(records));
+  }
+
+  // 2- Get the record with the given id
 
   const getRecordIdPattern = new URLPattern({
     pathname: "/records/:id",
@@ -29,13 +38,18 @@ async function handler(req: Request) {
     }
   }
 
-  // 2- Get all the records
-  const getRecordsPattern = new URLPattern({
-    pathname: "/records",
+  // 3- Get the summary
+
+  const getSummaryPattern = new URLPattern({
+    pathname: "/summary",
   });
 
-  if (getRecordsPattern.test(url) && req.method == "GET") {
-    return new Response(JSON.stringify(records));
+  if (getSummaryPattern.test(url) && req.method == "GET") {
+    let sum = 0;
+    for (const record of records) {
+      sum = sum + record.amount;
+    }
+    return new Response(JSON.stringify(sum), { status: 200 });
   }
 
   // POST Requests
@@ -62,20 +76,37 @@ async function handler(req: Request) {
 
       // add the id to the new record
       const newRecordWithID = { id: nextID, ...recordDetails };
-
       // add the new record to the records list
       const newRecords = [...records, newRecordWithID];
-
       // write the new record to the file
       Deno.writeTextFile("expenses.json", JSON.stringify(newRecords));
-
       //respond to client with the new record
-
       return new Response(JSON.stringify(newRecordWithID), { status: 201 });
     }
   }
 
+  //PUT Requests
+
+  //
+
   // DELETE Requests
+  const deleteRecordPattern = new URLPattern({
+    pathname: "/records/:id",
+  });
+
+  if (deleteRecordPattern.test(url) && req.method == "DELETE") {
+    const match = deleteRecordPattern.exec(url);
+    const idToDelete = Number(match?.pathname.groups.id);
+
+    const newRecords = records.filter((record) => {
+      return record.id !== idToDelete;
+    });
+
+    Deno.writeTextFile("expenses.json", JSON.stringify(newRecords));
+    return new Response(JSON.stringify({ message: "record deleted!" }), {
+      status: 200,
+    });
+  }
 
   return new Response(null, { status: 404 });
 }
