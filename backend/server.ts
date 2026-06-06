@@ -4,11 +4,26 @@ interface Record {
   amount: number;
   date: string;
 }
+//OPTIONS
+
+const corsHeaders = {
+  "content-type": "application/json",
+  "Access-Control-Allow-Origin": "http://localhost:5173",
+  "Access-Control-Allow-Methods": "GET, POST , PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
 
 async function handler(req: Request) {
   const url = new URL(req.url);
   const file = await Deno.readTextFile("expenses.json");
   const records: Record[] = JSON.parse(file);
+
+  if (req.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: corsHeaders,
+    });
+  }
 
   // GET Requests
 
@@ -18,7 +33,10 @@ async function handler(req: Request) {
   });
 
   if (getRecordsPattern.test(url) && req.method == "GET") {
-    return new Response(JSON.stringify(records));
+    return new Response(JSON.stringify(records), {
+      status: 200,
+      headers: corsHeaders,
+    });
   }
 
   // 2- Get the record with the given id
@@ -33,7 +51,10 @@ async function handler(req: Request) {
 
     for (const record of records) {
       if (record.id == userID) {
-        return new Response(JSON.stringify(record), { status: 200 });
+        return new Response(JSON.stringify(record), {
+          status: 200,
+          headers: corsHeaders,
+        });
       }
     }
   }
@@ -49,7 +70,10 @@ async function handler(req: Request) {
     for (const record of records) {
       sum = sum + record.amount;
     }
-    return new Response(JSON.stringify(sum), { status: 200 });
+    return new Response(JSON.stringify(sum), {
+      status: 200,
+      headers: corsHeaders,
+    });
   }
 
   // POST Requests
@@ -81,13 +105,16 @@ async function handler(req: Request) {
       // write the new record to the file
       Deno.writeTextFile("expenses.json", JSON.stringify(newRecords));
       //respond to client with the new record
-      return new Response(JSON.stringify(newRecordWithID), { status: 201 });
+      return new Response(JSON.stringify(newRecordWithID), {
+        status: 201,
+        headers: corsHeaders,
+      });
     }
   }
 
   //PUT Requests
 
-  //
+  // 1- update the record
 
   // DELETE Requests
   const deleteRecordPattern = new URLPattern({
@@ -105,6 +132,7 @@ async function handler(req: Request) {
     Deno.writeTextFile("expenses.json", JSON.stringify(newRecords));
     return new Response(JSON.stringify({ message: "record deleted!" }), {
       status: 200,
+      headers: corsHeaders,
     });
   }
 
