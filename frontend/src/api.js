@@ -64,3 +64,22 @@ export const deleteRecord = async (id) => {
     console.error("API Error (DELETE)", error);
   }
 };
+
+// patch a record
+export const patchRecord = async (id, newData) => {
+  try {
+    const response = await fetch(`${BASE_URL}/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newData),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch request");
+    }
+    const responseBody = await response.json();
+    return responseBody;
+  } catch (error) {
+    console.error("API Error (DELETE)", error);
+  }
+};

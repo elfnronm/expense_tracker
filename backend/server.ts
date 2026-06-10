@@ -9,7 +9,7 @@ interface Record {
 const corsHeaders = {
   "content-type": "application/json",
   "Access-Control-Allow-Origin": "http://localhost:5173",
-  "Access-Control-Allow-Methods": "GET, POST , PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST , PUT, PATCH, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type",
 };
 
@@ -134,6 +134,43 @@ async function handler(req: Request) {
       status: 200,
       headers: corsHeaders,
     });
+  }
+
+  // PATCH Requests
+
+  const patchRecordPattern = new URLPattern({
+    pathname: "/records/:id",
+  });
+
+  if (patchRecordPattern.test(url) && req.method == "PATCH") {
+    const match = patchRecordPattern.exec(url);
+    const idToPatch = Number(match?.pathname.groups.id);
+
+    // get the partial updates from the request body
+    const updates = await req.json();
+    console.log(updates);
+    console.log(JSON.stringify(updates));
+
+    //create an array to hold the updates
+    let updatedRecord: Record | null = null;
+
+    for (let i = 0; i < records.length; i++) {
+      if (records[i].id === idToPatch) {
+        //merge old record data with the incoming updates
+        records[i] = { ...records[i], ...updates };
+        updatedRecord = records[i];
+        break;
+      }
+    }
+
+    //if the record existed and was updated, save it to the file
+    if (updatedRecord) {
+      Deno.writeTextFile("expenses.json", JSON.stringify(records));
+      return new Response(JSON.stringify(updatedRecord), {
+        status: 200,
+        headers: corsHeaders,
+      });
+    }
   }
 
   return new Response(null, { status: 404 });
