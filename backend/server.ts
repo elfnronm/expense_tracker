@@ -77,7 +77,7 @@ async function handler(req: Request) {
   }
 
   // POST Requests
-  // 1- Post a new record to the list
+  // 1- Add a new record to the list
 
   const putRecordPattern = new URLPattern({
     pathname: "/records",
