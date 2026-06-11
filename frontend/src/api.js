@@ -8,12 +8,12 @@ export const fetchAllRecords = async () => {
   try {
     const response = await fetch(BASE_URL); // returns a response object stream, we need to extract the body part
     console.log(response);
+    const responseBody = await response.json();
 
     if (!response.ok) {
-      throw new Error("Failed to fetch records :(");
+      throw new Error(responseBody.message);
     }
-    const responseBody = await response.json();
-    console.log(responseBody);
+
     return responseBody;
   } catch (error) {
     console.error("API Error (GET):", error);
@@ -44,10 +44,11 @@ export const createRecord = async (description, amount) => {
       body: JSON.stringify(newExpense),
     });
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch request");
-    }
     const responseBody = await response.json();
+
+    if (!response.ok) {
+      throw new Error(responseBody.message);
+    }
     return responseBody;
   } catch (error) {
     console.error("API Error (POST)", error);
@@ -63,11 +64,11 @@ export const deleteRecord = async (id) => {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
     });
+    const responseBody = await response.json();
 
     if (!response.ok) {
-      throw new Error("Failed to fetch request");
+      throw new Error(responseBody.message);
     }
-    const responseBody = await response.json();
     return responseBody;
   } catch (error) {
     console.error("API Error (DELETE)", error);
@@ -84,13 +85,13 @@ export const patchRecord = async (id, newData) => {
       body: JSON.stringify(newData),
     });
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch request");
-    }
     const responseBody = await response.json();
+    if (!response.ok) {
+      throw new Error(responseBody.message);
+    }
     return responseBody;
   } catch (error) {
-    console.error("API Error (DELETE)", error);
+    console.error("API Error (PATCH)", error);
     throw error;
   }
 };
