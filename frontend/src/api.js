@@ -1,6 +1,6 @@
 // t his file making the requests to the backend - server.ts
 
-const BASE_URL = "http://localhost:8000/records";
+const BASE_URL = "https://expense-tracker.elfnronm.deno.net/records";
 
 // Fetch all records from server.ts
 
