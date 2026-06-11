@@ -1,3 +1,5 @@
+// t his file making the requests to the backend - server.ts
+
 const BASE_URL = "http://localhost:8000/records";
 
 // Fetch all records from server.ts
@@ -15,12 +17,18 @@ export const fetchAllRecords = async () => {
     return responseBody;
   } catch (error) {
     console.error("API Error (GET):", error);
+    throw error;
   }
 };
 
 // Send a new expense record to the server.ts
 
 export const createRecord = async (description, amount) => {
+  // validate the data before making the network request
+  const parsedAmount = Number(amount);
+  if (!description || isNaN(parsedAmount) || !Number.isFinite(parsedAmount)) {
+    throw new Error("invalid description or amount provided");
+  }
   const newExpense = {
     description: description,
     amount: Number(amount),
@@ -43,6 +51,7 @@ export const createRecord = async (description, amount) => {
     return responseBody;
   } catch (error) {
     console.error("API Error (POST)", error);
+    throw error;
   }
 };
 
@@ -62,6 +71,7 @@ export const deleteRecord = async (id) => {
     return responseBody;
   } catch (error) {
     console.error("API Error (DELETE)", error);
+    throw error;
   }
 };
 
@@ -81,5 +91,6 @@ export const patchRecord = async (id, newData) => {
     return responseBody;
   } catch (error) {
     console.error("API Error (DELETE)", error);
+    throw error;
   }
 };

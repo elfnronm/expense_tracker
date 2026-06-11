@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   fetchAllRecords,
   createRecord,
@@ -15,6 +15,10 @@ function App() {
   const [amount, setAmount] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [editingID, setEditingID] = useState(null);
+
+  useEffect(() => {
+    handleViewRecords();
+  }, []);
 
   // GET handler
   const handleViewRecords = async () => {
@@ -39,14 +43,16 @@ function App() {
       setExpenses([...expenses, savedRecord]);
       setDescription(""); //reset form fields
       setAmount("");
+      setIsOpen(false);
     } catch (error) {
-      alert("could not save your expense");
+      alert(error.message || "could not save your expense");
     }
   };
 
   // PATCH handler
   //trigger this function when clicking the edit record button
   const handleStartEdit = (expense) => {
+    setIsOpen(false);
     setEditingID(expense.id); //tell react which item layout to switch
     setDescription(expense.description); // pre fill the description input box
     setAmount(expense.amount); // pre fill the amount input box
@@ -99,88 +105,134 @@ function App() {
     }
   };
 
+  // get the summary
+  const total = expenses.reduce((sum, e) => sum + e.amount, 0);
+
   return (
     <>
-      {!isOpen && <button onClick={() => setIsOpen(true)}>Add Item</button>}
-      {isOpen && (
-        <form onSubmit={handleAddRecord}>
-          <input
-            type="text"
-            placeholder="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            style={{ padding: "8px", marginRight: "10px" }}
-          />
-
-          <input
-            type="text"
-            placeholder="Amount"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            style={{ padding: "8px", marginRight: "10px" }}
-          />
-
-          <button type="submit">Submit record</button>
-          <button type="button" onClick={() => setIsOpen(false)}>
-            Cancel
+      <div className="app">
+        <div className="header">
+          <h1>Expenses</h1>
+          <p>Track your spending</p>
+        </div>
+        Summary
+        <div className="summary-row">
+          <div className="metric">
+            <div className="metric-label">Summary of spent</div>
+            <div className="metric-value">${total.toFixed(2)}</div>
+          </div>
+          <div className="metric">
+            <div className="metric-label">Records</div>
+            <div className="metric-value">{expenses.length}</div>
+          </div>
+        </div>
+        {/* toolbar */}
+        <div className="toolbar">
+          <span className="toolbar-label">All records</span>
+          <button className="btn-add" onClick={() => setIsOpen(!isOpen)}>
+            + Add expense
           </button>
+        </div>
+        {/* add form */}
+        <form
+          onSubmit={handleAddRecord}
+          className={`add-form ${isOpen ? "open" : ""}`}
+        >
+          <div className="form-row">
+            <input
+              type="text"
+              placeholder="Description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="form-input"
+            />
+            <input
+              type="number"
+              placeholder="Amount"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="form-input"
+            />
+          </div>
+          <div className="form-actions">
+            <button type="submit" className="save-btn">
+              Save
+            </button>
+            <button
+              type="button"
+              className="cancel-btn"
+              onClick={() => setIsOpen(false)}
+            >
+              Cancel
+            </button>
+          </div>
         </form>
-      )}
-
-      <button onClick={handleViewRecords}>View Records</button>
-      <div className="records-container">
-        {expenses.length === 0 ? (
-          <p className="empty-message">No records yet, click to button </p>
-        ) : (
-          <ul className="records-list">
-            {expenses.map((expense) => (
-              <li key={expense.id} className="record-item">
-                {/* TERNARY SWITCH */}
-                {editingID === expense.id ? (
-                  // FIXED: Form elements are now flat siblings instead of children of the input
-                  <form
-                    onSubmit={(e) => handlePatchRecord(e, expense.id)}
-                    style={{ display: "inline" }}
-                  >
-                    <input
-                      type="text"
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      style={{ padding: "4px", marginRight: "5px" }}
-                    />
-                    <input
-                      type="number"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      style={{ padding: "4px", marginRight: "5px" }}
-                    />
-                    <button type="submit">Save</button>
-                    <button type="button" onClick={handleCancelEdit}>
-                      Cancel
-                    </button>
-                  </form>
-                ) : (
-                  // FIXED: Cleaned up structural fragments and double </li> placement
-                  <>
-                    <span className="record-text">
-                      <strong>{expense.description}</strong> - ${expense.amount}{" "}
-                      ({expense.date})
-                    </span>
-
-                    {/* FIXED: Attached handleStartEdit handler to the edit button */}
-                    <button onClick={() => handleStartEdit(expense)}>
-                      Edit Record
-                    </button>
-
-                    <button onClick={() => handleDeleteRecord(expense.id)}>
-                      Delete Record
-                    </button>
-                  </>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
+        {/* records list */}
+        <div className="records-container">
+          {expenses.length === 0 ? (
+            <p className="empty-message">No expenses yet. Add one above!</p>
+          ) : (
+            <ul className="records-list">
+              {expenses.map((expense) => (
+                <li key={expense.id} className="record-item">
+                  {editingID === expense.id ? (
+                    <form
+                      onSubmit={(e) => handlePatchRecord(e, expense.id)}
+                      className="edit-form"
+                    >
+                      <input
+                        type="text"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        className="edit-input"
+                      />
+                      <input
+                        type="number"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        className="edit-input"
+                      />
+                      <button type="submit" className="save-btn">
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCancelEdit}
+                        className="cancel-btn"
+                      >
+                        Cancel
+                      </button>
+                    </form>
+                  ) : (
+                    <>
+                      <div>
+                        <div className="record-desc">{expense.description}</div>
+                        <div className="record-date">{expense.date}</div>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        <span className="record-amount">${expense.amount}</span>
+                        <div className="record-actions">
+                          <button
+                            onClick={() => handleStartEdit(expense)}
+                            className="edit-btn"
+                          >
+                            ✎
+                          </button>
+                          <button
+                            onClick={() => handleDeleteRecord(expense.id)}
+                            className="delete-btn"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
     </>
   );

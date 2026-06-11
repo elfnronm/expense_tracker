@@ -15,8 +15,8 @@ const corsHeaders = {
 
 async function handler(req: Request) {
   const url = new URL(req.url);
-  const file = await Deno.readTextFile("expenses.json");
-  const records: Record[] = JSON.parse(file);
+  // const file = await Deno.readTextFile("expenses.json");
+  // const records: Record[] = JSON.parse(file);
 
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -33,6 +33,7 @@ async function handler(req: Request) {
   });
 
   if (getRecordsPattern.test(url) && req.method == "GET") {
+    const records = JSON.parse(await Deno.readTextFile("expenses.json"));
     return new Response(JSON.stringify(records), {
       status: 200,
       headers: corsHeaders,
@@ -46,6 +47,7 @@ async function handler(req: Request) {
   });
 
   if (getRecordIdPattern.test(url) && req.method == "GET") {
+    const records = JSON.parse(await Deno.readTextFile("expenses.json"));
     const match = getRecordIdPattern.exec(url);
     const userID = Number(match?.pathname.groups.id);
 
@@ -59,23 +61,6 @@ async function handler(req: Request) {
     }
   }
 
-  // 3- Get the summary
-
-  const getSummaryPattern = new URLPattern({
-    pathname: "/summary",
-  });
-
-  if (getSummaryPattern.test(url) && req.method == "GET") {
-    let sum = 0;
-    for (const record of records) {
-      sum = sum + record.amount;
-    }
-    return new Response(JSON.stringify(sum), {
-      status: 200,
-      headers: corsHeaders,
-    });
-  }
-
   // POST Requests
   // 1- Add a new record to the list
 
@@ -85,31 +70,34 @@ async function handler(req: Request) {
 
   // each record has id, description, amount and date. User don't write the id.
   if (putRecordPattern.test(url) && req.method == "POST") {
+    const records = JSON.parse(await Deno.readTextFile("expenses.json"));
     // get the details for the new record
     const recordDetails = await req.json();
 
     //create the id for the new user:
-    // initialize a variable to hold the highest id
-    let highestID = 0;
-    //check if the records has item in it
+
+    // determine the next unique ID based on existing records
+    let nextID: number;
+    // if there are existing records, find the highest ID and add 1
     if (records.length > 0) {
       // create an array of id's
-      const ids = records.map((record) => record.id);
-      highestID = Math.max(...ids);
-      const nextID = highestID + 1;
-
-      // add the id to the new record
-      const newRecordWithID = { id: nextID, ...recordDetails };
-      // add the new record to the records list
-      const newRecords = [...records, newRecordWithID];
-      // write the new record to the file
-      Deno.writeTextFile("expenses.json", JSON.stringify(newRecords));
-      //respond to client with the new record
-      return new Response(JSON.stringify(newRecordWithID), {
-        status: 201,
-        headers: corsHeaders,
-      });
+      const ids = records.map((record: Record) => record.id); // extract all existing IDs into an array
+      nextID = Math.max(...ids) + 1; // find the largest id and increment it
+    } else {
+      nextID = 1; // no records yet, so start IDs from 1
     }
+
+    // add the id to the new record
+    const newRecordWithID = { id: nextID, ...recordDetails };
+    // add the new record to the records list
+    const newRecords = [...records, newRecordWithID];
+    // write the new record to the file
+    await Deno.writeTextFile("expenses.json", JSON.stringify(newRecords));
+    //respond to client with the new record
+    return new Response(JSON.stringify(newRecordWithID), {
+      status: 201,
+      headers: corsHeaders,
+    });
   }
 
   //PUT Requests
@@ -122,14 +110,15 @@ async function handler(req: Request) {
   });
 
   if (deleteRecordPattern.test(url) && req.method == "DELETE") {
+    const records = JSON.parse(await Deno.readTextFile("expenses.json"));
     const match = deleteRecordPattern.exec(url);
     const idToDelete = Number(match?.pathname.groups.id);
 
-    const newRecords = records.filter((record) => {
+    const newRecords = records.filter((record: Record) => {
       return record.id !== idToDelete;
     });
 
-    Deno.writeTextFile("expenses.json", JSON.stringify(newRecords));
+    await Deno.writeTextFile("expenses.json", JSON.stringify(newRecords));
     return new Response(JSON.stringify({ message: "record deleted!" }), {
       status: 200,
       headers: corsHeaders,
@@ -143,6 +132,7 @@ async function handler(req: Request) {
   });
 
   if (patchRecordPattern.test(url) && req.method == "PATCH") {
+    const records = JSON.parse(await Deno.readTextFile("expenses.json"));
     const match = patchRecordPattern.exec(url);
     const idToPatch = Number(match?.pathname.groups.id);
 
@@ -165,7 +155,7 @@ async function handler(req: Request) {
 
     //if the record existed and was updated, save it to the file
     if (updatedRecord) {
-      Deno.writeTextFile("expenses.json", JSON.stringify(records));
+      await Deno.writeTextFile("expenses.json", JSON.stringify(records));
       return new Response(JSON.stringify(updatedRecord), {
         status: 200,
         headers: corsHeaders,

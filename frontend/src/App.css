@@ -1,50 +1,274 @@
 /* App.css */
 
-.records-container {
-  margin-top: 20px;
+/* Layout */
+#root {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+body {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+  color: #e53e3e;
+}
+.app {
+  max-width: 800px;
+  width: 100%;
+  padding: 2rem 0;
+  font-family: sans-serif;
 }
 
-.empty-message {
+.header {
+  margin-bottom: 2rem;
+}
+
+.header h1 {
+  font-size: 22px;
+  font-weight: 500;
+  color: #111;
+}
+
+.header p {
+  font-size: 14px;
   color: #888;
-  font-style: italic;
+  margin-top: 4px;
 }
 
-.records-list {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
+/* Summary metrics */
+.summary-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 2rem;
 }
 
-.record-item {
-  margin: 10px 0;
-  text-align: left;
+.metric {
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.metric-label {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 4px;
+}
+
+.metric-value {
+  font-size: 24px;
+  font-weight: 500;
+  color: #111;
+}
+
+/* Toolbar */
+.toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  max-width: 550px;
-  padding: 8px 12px;
-  border-bottom: 1px solid #333;
-  background-color: #1a1a1a; /* Optional: gives it a subtle dark background */
-  border-radius: 4px;
+  margin-bottom: 1rem;
 }
 
-.record-text {
-  font-size: 1rem;
-  color: aliceblue;
+.toolbar-label {
+  font-size: 13px;
+  color: #888;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Add form */
+.add-form {
+  background: #fff;
+  border: 0.5px solid #ddd;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  display: none;
+}
+
+.add-form.open {
+  display: block;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 0.5px solid #ccc;
+  font-size: 14px;
+  background: #fff;
+  color: #111;
+}
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Records list */
+.records-container {
+  margin-top: 0;
+}
+
+.records-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: 0.5px solid #e0e0e0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.record-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: #fff;
+  border: none;
+  border-radius: 0;
+}
+
+.record-item:hover {
+  background: #fafafa;
+}
+
+.record-item + .record-item {
+  border-top: 0.5px solid #e0e0e0;
+}
+
+.record-desc {
+  font-size: 15px;
+  font-weight: 500;
+  color: #111;
+}
+
+.record-date {
+  font-size: 12px;
+  color: #888;
+  margin-top: 2px;
+}
+
+.record-amount {
+  font-size: 15px;
+  font-weight: 500;
+  color: #111;
+  margin-right: 16px;
+}
+
+/* Edit form */
+.edit-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.edit-input {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 0.5px solid #ccc;
+  font-size: 14px;
+  background: #fff;
+  color: #111;
+}
+
+/* Buttons */
+.btn-add {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  padding: 6px 14px;
+  border: 0.5px solid #ccc;
+  border-radius: 8px;
+  background: transparent;
+  color: #111;
+  cursor: pointer;
+}
+
+.btn-add:hover {
+  background: #f5f5f5;
+}
+
+.save-btn {
+  font-size: 14px;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 8px;
+  background: #111;
+  color: #fff;
+  cursor: pointer;
+}
+
+.save-btn:hover {
+  background: #333;
+}
+
+.cancel-btn {
+  font-size: 14px;
+  padding: 6px 14px;
+  border: 0.5px solid #ccc;
+  border-radius: 8px;
+  background: transparent;
+  color: #888;
+  cursor: pointer;
+}
+
+.cancel-btn:hover {
+  background: #f5f5f5;
+}
+
+.edit-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #888;
+  padding: 4px;
+  border-radius: 6px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.edit-btn:hover {
+  color: #111;
+  background: #f5f5f5;
 }
 
 .delete-btn {
-  margin-left: 15px;
-  color: #ff4d4d;
-  background: none;
-  border: 1px solid #ff4d4d;
-  padding: 4px 8px;
-  border-radius: 4px;
+  background: transparent;
+  border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  color: #888;
+  padding: 4px;
+  border-radius: 6px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
 }
 
 .delete-btn:hover {
-  background-color: #ff4d4d;
-  color: white;
+  color: #e53e3e;
+  background: #f5f5f5;
+}
+
+/* Empty state */
+.empty-message {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: #888;
+  font-size: 14px;
+  border: 0.5px solid #e0e0e0;
+  border-radius: 12px;
+  font-style: normal;
 }
