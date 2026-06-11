@@ -25,9 +25,6 @@ const corsHeaders = {
 
 async function handler(req: Request) {
   const url = new URL(req.url);
-  // const file = await Deno.readTextFile("expenses.json");
-  // const records: Record[] = JSON.parse(file);
-
   if (req.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
@@ -43,8 +40,18 @@ async function handler(req: Request) {
   });
 
   if (getRecordsPattern.test(url) && req.method == "GET") {
-    const records = JSON.parse(await Deno.readTextFile("expenses.json"));
-    return new Response(JSON.stringify(records), {
+    // const records = JSON.parse(await Deno.readTextFile("expenses.json"));
+    const result = await supabase.from("expenses").select("*");
+    const data = result.data;
+    const error = result.error;
+
+    if (error)
+      return new Response(JSON.stringify(error), {
+        status: 500,
+        headers: corsHeaders,
+      });
+
+    return new Response(JSON.stringify(data), {
       status: 200,
       headers: corsHeaders,
     });
@@ -57,18 +64,25 @@ async function handler(req: Request) {
   });
 
   if (getRecordIdPattern.test(url) && req.method == "GET") {
-    const records = JSON.parse(await Deno.readTextFile("expenses.json"));
     const match = getRecordIdPattern.exec(url);
     const userID = Number(match?.pathname.groups.id);
 
-    for (const record of records) {
-      if (record.id == userID) {
-        return new Response(JSON.stringify(record), {
-          status: 200,
-          headers: corsHeaders,
-        });
-      }
-    }
+    const { data, error } = await supabase
+      .from("expenses")
+      .select("*")
+      .eq("id", userID)
+      .single();
+
+    if (error)
+      return new Response(JSON.stringify(error), {
+        status: 404,
+        headers: corsHeaders,
+      });
+
+    return new Response(JSON.stringify(data), {
+      status: 200,
+      headers: corsHeaders,
+    });
   }
 
   // POST Requests
@@ -80,39 +94,25 @@ async function handler(req: Request) {
 
   // each record has id, description, amount and date. User don't write the id.
   if (putRecordPattern.test(url) && req.method == "POST") {
-    const records = JSON.parse(await Deno.readTextFile("expenses.json"));
     // get the details for the new record
     const recordDetails = await req.json();
+    const { data, error } = await supabase
+      .from("expenses")
+      .insert(recordDetails)
+      .select()
+      .single();
 
-    //create the id for the new user:
+    if (error)
+      return new Response(JSON.stringify(error), {
+        status: 500,
+        headers: corsHeaders,
+      });
 
-    // determine the next unique ID based on existing records
-    let nextID: number;
-    // if there are existing records, find the highest ID and add 1
-    if (records.length > 0) {
-      // create an array of id's
-      const ids = records.map((record: Record) => record.id); // extract all existing IDs into an array
-      nextID = Math.max(...ids) + 1; // find the largest id and increment it
-    } else {
-      nextID = 1; // no records yet, so start IDs from 1
-    }
-
-    // add the id to the new record
-    const newRecordWithID = { id: nextID, ...recordDetails };
-    // add the new record to the records list
-    const newRecords = [...records, newRecordWithID];
-    // write the new record to the file
-    await Deno.writeTextFile("expenses.json", JSON.stringify(newRecords));
-    //respond to client with the new record
-    return new Response(JSON.stringify(newRecordWithID), {
+    return new Response(JSON.stringify(data), {
       status: 201,
       headers: corsHeaders,
     });
   }
-
-  //PUT Requests
-
-  // 1- update the record
 
   // DELETE Requests
   const deleteRecordPattern = new URLPattern({
@@ -120,15 +120,19 @@ async function handler(req: Request) {
   });
 
   if (deleteRecordPattern.test(url) && req.method == "DELETE") {
-    const records = JSON.parse(await Deno.readTextFile("expenses.json"));
     const match = deleteRecordPattern.exec(url);
     const idToDelete = Number(match?.pathname.groups.id);
 
-    const newRecords = records.filter((record: Record) => {
-      return record.id !== idToDelete;
-    });
+    const { error } = await supabase
+      .from("expenses")
+      .delete()
+      .eq("id", idToDelete);
 
-    await Deno.writeTextFile("expenses.json", JSON.stringify(newRecords));
+    if (error)
+      return new Response(JSON.stringify(error), {
+        status: 500,
+        headers: corsHeaders,
+      });
     return new Response(JSON.stringify({ message: "record deleted!" }), {
       status: 200,
       headers: corsHeaders,
@@ -142,35 +146,29 @@ async function handler(req: Request) {
   });
 
   if (patchRecordPattern.test(url) && req.method == "PATCH") {
-    const records = JSON.parse(await Deno.readTextFile("expenses.json"));
     const match = patchRecordPattern.exec(url);
     const idToPatch = Number(match?.pathname.groups.id);
 
     // get the partial updates from the request body
     const updates = await req.json();
-    console.log(updates);
-    console.log(JSON.stringify(updates));
 
-    //create an array to hold the updates
-    let updatedRecord: Record | null = null;
+    const { data, error } = await supabase
+      .from("expenses")
+      .update(updates)
+      .eq("id", idToPatch)
+      .select()
+      .single();
 
-    for (let i = 0; i < records.length; i++) {
-      if (records[i].id === idToPatch) {
-        //merge old record data with the incoming updates
-        records[i] = { ...records[i], ...updates };
-        updatedRecord = records[i];
-        break;
-      }
-    }
-
-    //if the record existed and was updated, save it to the file
-    if (updatedRecord) {
-      await Deno.writeTextFile("expenses.json", JSON.stringify(records));
-      return new Response(JSON.stringify(updatedRecord), {
-        status: 200,
+    if (error)
+      return new Response(JSON.stringify(error), {
+        status: 500,
         headers: corsHeaders,
       });
-    }
+
+    return new Response(JSON.stringify(data), {
+      status: 200,
+      headers: corsHeaders,
+    });
   }
 
   return new Response(null, { status: 404 });
