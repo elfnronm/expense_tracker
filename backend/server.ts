@@ -1,9 +1,19 @@
+import { createClient } from "@supabase/supabase-js";
+
 interface Record {
   id: number;
   description: string;
   amount: number;
   date: string;
 }
+
+//connect to supabase
+
+const supabase = createClient(
+  Deno.env.get("SUPABASE_URL")!,
+  Deno.env.get("SUPABASE_ANON_KEY")!,
+);
+
 //OPTIONS
 
 const corsHeaders = {

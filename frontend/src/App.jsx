@@ -148,6 +148,7 @@ function App() {
             />
             <input
               type="number"
+              min={0}
               placeholder="Amount"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
