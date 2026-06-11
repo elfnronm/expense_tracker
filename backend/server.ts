@@ -18,8 +18,7 @@ const supabase = createClient(
 
 const corsHeaders = {
   "content-type": "application/json",
-  "Access-Control-Allow-Origin":
-    "https://brilliant-phoenix-172a37.netlify.app/",
+  "Access-Control-Allow-Origin": "https://brilliant-phoenix-172a37.netlify.app",
   "Access-Control-Allow-Methods": "GET, POST , PUT, PATCH, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type",
 };
