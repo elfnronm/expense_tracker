@@ -62,15 +62,12 @@ async function handler(req: Request) {
   });
 
   if (getRecordsPattern.test(url) && req.method == "GET") {
-    console.log("Logged in user:", user.id);
     const result = await supabase
       .from("expenses")
       .select("*")
       .eq("user_id", user.id);
     const data = result.data;
     const error = result.error;
-
-    console.log("returned data:", data);
 
     if (error)
       return new Response(JSON.stringify(error), {
