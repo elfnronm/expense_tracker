@@ -272,3 +272,49 @@ body {
   border-radius: 12px;
   font-style: normal;
 }
+
+/* Auth page */
+.auth-container {
+  max-width: 400px;
+  margin: 4rem auto;
+  background: #fff;
+  border: 0.5px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+}
+
+.auth-container h2 {
+  font-size: 22px;
+  font-weight: 500;
+  color: #111;
+  margin-bottom: 1.5rem;
+}
+
+.auth-container form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 1rem;
+}
+
+.auth-container .save-btn {
+  width: 100%;
+}
+
+.auth-container .cancel-btn {
+  width: 100%;
+  border: none;
+  color: #4da6ff;
+  background: transparent;
+}
+
+.auth-container .cancel-btn:hover {
+  text-decoration: underline;
+  background: transparent;
+}
+
+.auth-container p {
+  font-size: 13px;
+  margin: 0;
+}

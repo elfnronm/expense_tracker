@@ -6,8 +6,11 @@ import {
   patchRecord,
 } from "./api.js";
 import "./App.css";
+import { supabase } from "./supabaseClient.js";
+import Auth from "./Auth.jsx";
 
 function App() {
+  const [session, setSession] = useState(null);
   // change state to an empty array to store fetched records
   const [expenses, setExpenses] = useState([]); // each record is one expense and the expenses -> [expense 1 , expense 2]
   // expense1 : { "id": 1, "description": "book", "amount": 20, "date": "2026-06-05" }
@@ -15,6 +18,27 @@ function App() {
   const [amount, setAmount] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [editingID, setEditingID] = useState(null);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      //check if user is already logged in
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session);
+    };
+    checkSession();
+
+    //listen for login/logout changes
+    //const {data: listener} = result : this says take the value of result.data and store it in
+    // a new variable called listener
+    //it is equivalent to const listener= result.data
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+      },
+    );
+
+    return () => listener.subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     handleViewRecords();
@@ -108,14 +132,19 @@ function App() {
   // get the summary
   const total = expenses.reduce((sum, e) => sum + e.amount, 0);
 
+  if (!session) {
+    return <Auth />;
+  }
+
   return (
     <>
       <div className="app">
+        <button onClick={() => supabase.auth.signOut()}>Log Out</button>
         <div className="header">
           <h1>Expenses</h1>
           <p>Track your spending</p>
         </div>
-        Summary
+
         <div className="summary-row">
           <div className="metric">
             <div className="metric-label">Summary of spent</div>
