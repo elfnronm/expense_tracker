@@ -2,8 +2,7 @@
 
 import { supabase } from "./supabaseClient.js";
 
-// const BASE_URL = "https://expense-tracker.elfnronm.deno.net/records";
-const BASE_URL = "http://localhost:8000/records";
+const BASE_URL = "https://expense-tracker.elfnronm.deno.net/records";
 
 //get the current token
 const getAuthHeaders = async () => {
