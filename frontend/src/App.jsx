@@ -24,6 +24,9 @@ function App() {
       //check if user is already logged in
       const { data } = await supabase.auth.getSession();
       setSession(data.session);
+      if (data.session) {
+        handleViewRecords();
+      }
     };
     checkSession();
 
@@ -42,10 +45,6 @@ function App() {
     );
 
     return () => listener.subscription.unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    handleViewRecords();
   }, []);
 
   // GET handler
