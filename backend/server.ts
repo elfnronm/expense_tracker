@@ -20,14 +20,36 @@ const corsHeaders = {
   "content-type": "application/json",
   "Access-Control-Allow-Origin": "https://brilliant-phoenix-172a37.netlify.app",
   "Access-Control-Allow-Methods": "GET, POST , PUT, PATCH, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
+
+//extract the token from the request and verify it with supabase
+async function getUser(req: Request) {
+  const authHeader = req.headers.get("Authorization");
+  const token = authHeader?.replace("Bearer ", "");
+
+  if (!token) return null;
+
+  const { data, error } = await supabase.auth.getUser(token);
+
+  if (error) return null;
+
+  return data.user;
+}
 
 async function handler(req: Request) {
   const url = new URL(req.url);
   if (req.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
+      headers: corsHeaders,
+    });
+  }
+
+  const user = await getUser(req);
+  if (!user) {
+    return new Response(JSON.stringify({ message: "unauthorized" }), {
+      status: 401,
       headers: corsHeaders,
     });
   }
@@ -40,10 +62,15 @@ async function handler(req: Request) {
   });
 
   if (getRecordsPattern.test(url) && req.method == "GET") {
-    // const records = JSON.parse(await Deno.readTextFile("expenses.json"));
-    const result = await supabase.from("expenses").select("*");
+    console.log("Logged in user:", user.id);
+    const result = await supabase
+      .from("expenses")
+      .select("*")
+      .eq("user_id", user.id);
     const data = result.data;
     const error = result.error;
+
+    console.log("returned data:", data);
 
     if (error)
       return new Response(JSON.stringify(error), {
@@ -71,6 +98,7 @@ async function handler(req: Request) {
       .from("expenses")
       .select("*")
       .eq("id", userID)
+      .eq("user_id", user.id)
       .single();
 
     if (error)
@@ -98,7 +126,7 @@ async function handler(req: Request) {
     const recordDetails = await req.json();
     const { data, error } = await supabase
       .from("expenses")
-      .insert(recordDetails)
+      .insert({ ...recordDetails, user_id: user.id })
       .select()
       .single();
 
@@ -126,7 +154,8 @@ async function handler(req: Request) {
     const { error } = await supabase
       .from("expenses")
       .delete()
-      .eq("id", idToDelete);
+      .eq("id", idToDelete)
+      .eq("user_id", user.id);
 
     if (error)
       return new Response(JSON.stringify(error), {
@@ -156,6 +185,7 @@ async function handler(req: Request) {
       .from("expenses")
       .update(updates)
       .eq("id", idToPatch)
+      .eq("user_id", user.id)
       .select()
       .single();
 

@@ -34,6 +34,10 @@ function App() {
     const { data: listener } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
+        setExpenses([]);
+        if (session) {
+          handleViewRecords();
+        }
       },
     );
 

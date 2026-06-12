@@ -1,12 +1,27 @@
 // t his file making the requests to the backend - server.ts
 
-const BASE_URL = "https://expense-tracker.elfnronm.deno.net/records";
+import { supabase } from "./supabaseClient.js";
+
+// const BASE_URL = "https://expense-tracker.elfnronm.deno.net/records";
+const BASE_URL = "http://localhost:8000/records";
+
+//get the current token
+const getAuthHeaders = async () => {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+};
 
 // Fetch all records from server.ts
 
 export const fetchAllRecords = async () => {
   try {
-    const response = await fetch(BASE_URL); // returns a response object stream, we need to extract the body part
+    const headers = await getAuthHeaders();
+    const response = await fetch(BASE_URL, { headers }); // returns a response object stream, we need to extract the body part
     console.log(response);
     const responseBody = await response.json();
 
@@ -36,11 +51,11 @@ export const createRecord = async (description, amount) => {
   };
 
   try {
+    const headers = await getAuthHeaders();
+
     const response = await fetch(BASE_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: headers,
       body: JSON.stringify(newExpense),
     });
 
@@ -60,9 +75,11 @@ export const createRecord = async (description, amount) => {
 
 export const deleteRecord = async (id) => {
   try {
+    const headers = await getAuthHeaders();
+
     const response = await fetch(`${BASE_URL}/${id}`, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
+      headers: headers,
     });
     const responseBody = await response.json();
 
@@ -79,9 +96,10 @@ export const deleteRecord = async (id) => {
 // patch a record
 export const patchRecord = async (id, newData) => {
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${BASE_URL}/${id}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: headers,
       body: JSON.stringify(newData),
     });
 
